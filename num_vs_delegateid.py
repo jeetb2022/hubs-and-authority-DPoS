@@ -6,12 +6,14 @@ from collections import defaultdict
 
 # Initialize an empty list to store the delegates for each step
 all_delegates = defaultdict(int)
+delegate_reputations = defaultdict(int)
+voter_reputations = defaultdict(int)
 
 def generate_dynamic_random_directed_graph(num_nodes, max_out_degree, num_steps):
     G = nx.DiGraph()
     attributes = {
-        "delegate_reputation": 1,
-        "voter_reputation": 1,
+        "delegate_reputation": 60,
+        "voter_reputation": 60,
         "delegate_value": 1,
         "voter_value" : 1,
         "delegate_curr_flag" : 0,
@@ -52,55 +54,56 @@ def generate_dynamic_random_directed_graph(num_nodes, max_out_degree, num_steps)
 
         # The delagte value of the nodes is being computed
 # The delegate value is being computed
-        for node in G.nodes:
-            votes_received = 0
+        for i in range (5):
+            for node in G.nodes:
+                votes_received = 0
 
-            for predecessor in G.predecessors(node):
-                # Check if there is an incoming edge with the specific attribute value
-                # print( G.edges[predecessor,node]['time'] )
-                if G.edges[predecessor,node]['time'] == step:
-                    votes_received += 1
-                # if G.nodes[predecessor].get('time') == step:
-                #     votes_received += 1
-            # if (votes_received == 0 ):
-            #     print("This node with id : ",node,"has 0 votes")
-            G.nodes[node]['delegate_value'] = votes_received
+                for predecessor in G.predecessors(node):
+                    # Check if there is an incoming edge with the specific attribute value
+                    # print( G.edges[predecessor,node]['time'] )
+                    if G.edges[predecessor,node]['time'] == step:
+                        votes_received += 1
+                    # if G.nodes[predecessor].get('time') == step:
+                    #     votes_received += 1
+                # if (votes_received == 0 ):
+                #     print("This node with id : ",node,"has 0 votes")
+                G.nodes[node]['delegate_value'] = votes_received
 
-        # The voter value is being computed
+            # The voter value is being computed
 
 
-        for node in G.nodes:
-            votes_casted = 0
+            for node in G.nodes:
+                votes_casted = 0
 
-            for successor in G.successors(node):
-                # Check if there is an incoming edge with the specific attribute value
-                if G.edges[node,successor]['time'] == step:
-                    votes_casted += G.nodes[successor]['delegate_value']
+                for successor in G.successors(node):
+                    # Check if there is an incoming edge with the specific attribute value
+                    if G.edges[node,successor]['time'] == step:
+                        votes_casted += G.nodes[successor]['delegate_value']
 
-                # if G.nodes[successor].get('time') == step:
-                #     # The delegate value of the voted nodes is added to the voter value of the node that it has voting.
-                    # votes_casted += G.nodes[successor]['delegate_value']
+                    # if G.nodes[successor].get('time') == step:
+                    #     # The delegate value of the voted nodes is added to the voter value of the node that it has voting.
+                        # votes_casted += G.nodes[successor]['delegate_value']
 
-            G.nodes[node]['voter_value'] = votes_casted
+                G.nodes[node]['voter_value'] = votes_casted
 
-        # The delagte value of the nodes is being computed
-        for node in G.nodes:
-            # print("node",node)
-            votes_received=0
-            voters_to_delegate=[]
+            # The delagte value of the nodes is being computed
+            # for node in G.nodes:
+            #     # print("node",node)
+            #     votes_received=0
+            #     voters_to_delegate=[]
 
-            for predecessor in G.predecessors(node):
-             # Check if there is an incoming edge with the specific attribute value
-                if G.edges[predecessor,node]['time'] == step:
-                    votes_received += G.nodes[predecessor]['voter_value']
-                # if G.nodes[predecessor].get('time') == step:
-                #     votes_received = votes_received+G.nodes[predecessor]['voter_value']
-                    # voters_to_delegate.append(predecessor)
-            G.nodes[node]['delegate_value'] = votes_received
+            #     for predecessor in G.predecessors(node):
+            #     # Check if there is an incoming edge with the specific attribute value
+            #         if G.edges[predecessor,node]['time'] == step:
+            #             votes_received += G.nodes[predecessor]['voter_value']
+            #         # if G.nodes[predecessor].get('time') == step:
+            #         #     votes_received = votes_received+G.nodes[predecessor]['voter_value']
+            #             # voters_to_delegate.append(predecessor)
+            #     G.nodes[node]['delegate_value'] = votes_received
 
-        # for node in G.nodes:
-            # print(G.nodes[node].get('delegate_value'))
-            # total_delegate_value+=G.nodes[node].get('delegate_value')
+            # for node in G.nodes:
+                # print(G.nodes[node].get('delegate_value'))
+                # total_delegate_value+=G.nodes[node].get('delegate_value')
 
         delegate_values = {node: G.nodes[node].get('delegate_value') for node in G.nodes()}
         # print("Step:", step, "Top 5 Delegates:", delegate_values)
@@ -159,7 +162,11 @@ def generate_dynamic_random_directed_graph(num_nodes, max_out_degree, num_steps)
                 G.nodes[node]['delegate_curr_flag'] = G.nodes[node].get('delegate_curr_flag') - 1
             if G.nodes[node].get('delegate_max_flag') == 3:
                 nodes_to_remove.append(node)
-
+                
+        for node in G.nodes:
+            # print(G.nodes[delegate].get('delegate_value'))
+            delegate_reputations[node] = (G.nodes[node].get('delegate_reputation'))
+            voter_reputations[node] =(G.nodes[node].get('voter_reputation'))
         # Remove nodes marked for removal
         for node in nodes_to_remove:
             G.remove_node(node)
@@ -175,9 +182,9 @@ def generate_dynamic_random_directed_graph(num_nodes, max_out_degree, num_steps)
     return G
 
 # Generate the dynamic random directed graph
-num_nodes = 150
+num_nodes = 50
 max_out_degree = 5
-num_steps = 10000 # Number of time steps
+num_steps = 5000 # Number of time steps
 random_dynamic_graph = generate_dynamic_random_directed_graph(num_nodes, max_out_degree, num_steps)
 
 # Save the dynamic graph to a GraphML file
